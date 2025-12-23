@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MedProtocol v2.0</title>
+    <meta name="description" content="Педиатрический инструмент оценки физического и НПР развития">
+    <meta name="theme-color" content="#2c3e50">
+    <style>
+        :root {
+            --bg-body: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --primary: #2980b9;
+            --primary-hover: #3498db;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #27ae60;
+            --border: #e0e0e0;
+            --input-bg: #f8f9fa;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+            --radius: 16px;
+            --footer-height: 140px;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --primary: #4dabf5;
+            --primary-hover: #2196f3;
+            --border: #333;
+            --input-bg: #2c2c2c;
+            --shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            font-size: 16px; 
+            line-height: 1.5; 
+            padding-bottom: calc(var(--footer-height) + 20px); 
+        }
+        
+        /* Layout */
+        .container { max-width: 600px; margin: 0 auto; padding: 20px 15px; }
+        .card { background: var(--bg-card); border-radius: var(--radius); padding: 24px 20px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .hidden { display: none !important; }
+        
+        /* Grid */
+        .grid-row { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 480px) {
+            .grid-row { grid-template-columns: 1fr 1fr; }
+            .grid-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
+        }
+        
+        /* Typography */
+        h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 20px 0; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+        h1 span.title-text { color: var(--primary); }
+        
+        h3 { 
+            font-size: 1.1rem; font-weight: 700; margin: 0 0 20px 0; 
+            color: var(--text-main); border-bottom: 1px solid var(--border); 
+            padding-bottom: 12px; display: flex; align-items: center; gap: 10px; 
+        }
+        
+        /* Label with Icon */
+        .label-text { 
+            display: flex; align-items: center; justify-content: space-between; 
+            font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; 
+        }
+        .label-icon { width: 16px; height: 16px; margin-right: 6px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
+        .label-group { display: flex; align-items: center; }
+
+        .theme-switch-wrapper { display: flex; align-items: center; gap: 10px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); background: var(--bg-card); padding: 5px 10px; border-radius: 20px; box-shadow: var(--shadow); }
+        .weight-hint { color: var(--primary); font-weight: 700; font-size: 0.85rem; }
+
+        /* Input Structures */
+        .input-wrapper { width: 100%; }
+        .relative-field { position: relative; width: 100%; } 
+        
+        input[type="text"], input[type="number"], input[type="tel"], input[type="password"], select {
+            width: 100%; padding: 16px 16px; padding-right: 44px;
+            border: 1px solid var(--border); border-radius: 12px;
+            background: var(--input-bg); color: var(--text-main); 
+            font-size: 1.05rem; font-weight: 500;
+            transition: all 0.2s ease;
+            appearance: none; 
+        }
+        input::placeholder { color: var(--text-muted); opacity: 0.5; font-weight: 400; }
+        input:focus, select:focus { border-color: var(--primary); background: var(--bg-card); box-shadow: 0 0 0 4px rgba(41, 128, 185, 0.1); }
+        .input-error { border-color: var(--danger) !important; background-color: rgba(231, 76, 60, 0.05) !important; }
+
+        /* Clear Button (Fixed) */
+        .clear-btn {
+            position: absolute; right: 8px; 
+            top: 50%; transform: translateY(-50%); 
+            width: 32px; height: 32px; 
+            border-radius: 50%; 
+            background: transparent; color: var(--text-muted); border: none; 
+            cursor: pointer; 
+            display: none; align-items: center; justify-content: center;
+            padding: 0; 
+            transition: color 0.2s, background 0.2s;
+            z-index: 5;
+        }
+        .clear-btn:hover { color: var(--danger); background: rgba(0,0,0,0.05); }
+        .clear-btn svg { width: 20px; height: 20px; stroke-width: 2.5; }
+        
+        input:not(:placeholder-shown) + .clear-btn { display: flex; }
+
+        /* Buttons */
+        button {
+            cursor: pointer; padding: 16px 24px; border: none; border-radius: 14px;
+            font-size: 1rem; font-weight: 700; letter-spacing: 0.3px;
+            background: var(--primary); color: white;
+            transition: transform 0.1s, opacity 0.2s; width: 100%; 
+            box-shadow: 0 4px 6px rgba(41, 128, 185, 0.2);
+        }
+        button:active { transform: scale(0.98); }
+        button.secondary { background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border); box-shadow: none; }
+        button.icon-btn { width: auto; background: transparent; color: var(--text-main); padding: 5px; font-size: 1.2rem; box-shadow: none; }
+
+        /* Sticky Footer */
+        .sticky-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 15px; z-index: 900;
+            display: flex; justify-content: center;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+        }
+        .footer-container {
+            width: 100%; max-width: 600px;
+            display: flex; flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Toast Notification */
+        #v_toast {
+            visibility: hidden;
+            min-width: 280px;
+            background-color: var(--text-main);
+            color: var(--bg-card);
+            text-align: center;
+            border-radius: 50px;
+            padding: 16px 24px;
+            position: fixed;
+            z-index: 2000;
+            left: 50%;
+            bottom: calc(var(--footer-height) + 20px); /* Position above footer */
+            transform: translateX(-50%);
+            font-size: 0.95rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s ease-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+        #v_toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: calc(var(--footer-height) + 30px); /* Slide up effect */
+        }
+
+        /* Checkbox & Details */
+        .checkbox-wrapper { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; cursor: pointer; padding: 8px 0; }
+        .checkbox-wrapper input { width: 22px; height: 22px; accent-color: var(--primary); margin: 0; flex-shrink: 0; border-radius: 6px; }
+        
+        details { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--input-bg); }
+        summary { padding: 14px; cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '+'; font-size: 1.4rem; color: var(--text-muted); font-weight: 300; }
+        details[open] summary::after { content: '−'; }
+        details[open] summary { border-bottom: 1px solid var(--border); background: rgba(41, 128, 185, 0.08); color: var(--primary); }
+        .details-content { padding: 16px; background: var(--bg-card); }
+
+        /* Results & Status Colors */
+        .result-section { margin-top: 25px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .result-data { background: var(--bg-card); padding: 20px; border-bottom: 1px solid var(--border); line-height: 1.6; }
+        .result-conclusion { padding: 20px; color: #2c3e50; font-weight: 600; transition: background 0.3s; font-size: 1.05rem; }
+        
+        .status-green { background-color: rgba(39, 174, 96, 0.15); color: #1e8449; }
+        .status-yellow { background-color: rgba(243, 156, 18, 0.15); color: #d35400; }
+        .status-red { background-color: rgba(231, 76, 60, 0.15); color: #c0392b; }
+        
+        [data-theme="dark"] .status-green { color: #2ecc71; background-color: rgba(46, 204, 113, 0.2); }
+        [data-theme="dark"] .status-yellow { color: #f1c40f; background-color: rgba(241, 196, 15, 0.2); }
+        [data-theme="dark"] .status-red { color: #e74c3c; background-color: rgba(231, 76, 60, 0.2); }
+
+        /* Modal */
+        #v_login { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 2000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
+        .login-card { background: var(--bg-card); padding: 40px 30px; border-radius: 24px; box-shadow: var(--shadow); width: 100%; max-width: 350px; text-align: center; }
+        
+        footer { margin-top: 40px; padding: 20px 10px; font-size: 0.75rem; color: var(--text-muted); opacity: 0.8; line-height: 1.5; text-align: center; border-top: 1px solid var(--border); }
+        .disclaimer-title { font-weight: 800; margin-bottom: 8px; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="v_toast">Текст скопирован в буфер обмена</div>
+
+    <!-- AUTH VIEW -->
+    <div id="v_login">
+        <div class="login-card">
+            <h2 style="font-size: 2rem; margin-bottom: 10px; color: var(--primary);">MedProtocol</h2>
+            <div style="color: var(--text-muted); font-size: 1rem; margin-bottom: 30px;">Вход в систему</div>
+            <input type="password" id="i_pin_input" maxlength="4" placeholder="PIN" inputmode="numeric" 
+                   style="text-align: center; letter-spacing: 8px; font-size: 1.8rem; margin-bottom: 25px; padding: 15px;">
+            <button id="btn_login_enter" style="font-size: 1.1rem; padding: 18px;">Войти</button>
+            <div id="o_login_error" style="color: var(--danger); margin-top: 15px; font-size: 0.9rem; min-height: 1.2em;"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP VIEW -->
+    <div id="v_app" class="container hidden">
+        
+        <header style="margin-bottom: 25px;">
+            <h1>
+                <span class="title-text">MedProtocol v2.0</span>
+                <div class="theme-switch-wrapper">
+                    <span>Тема</span>
+                    <button id="btn_theme" class="icon-btn">🌗</button>
+                </div>
+            </h1>
+        </header>
+
+        <section class="card" id="v_passport">
+            <h3>
+                <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-1.294-1.54 6.721 6.721 0 01-1.295 1.54c-1.055.54-1.295 1.04-1.295 1.04v.75h5.18v-.75s-.24-.5-.1295-1.04z" /></svg>
+                Паспортная часть
+            </h3>
+            <div class="grid-row three-col">
+                <div class="input-wrapper">
+                    <label class="label-text">
+                        <span class="label-group">
+                            <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                            Дата рождения
+                        </span>
+                    </label>
+                    <div class="relative-field">
+                        <input type="text" id="i_dob" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" maxlength="10">
+                        <button class="clear-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label class="label-text">
+                        <span class="label-group">
+                            <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                            Пол
+                        </span>
+                    </label>
+                    <div class="relative-field">
+                        <select id="i_gender" style="height: 52px;">
+                            <option value="m">Мальчик</option>
+                            <option value="f">Девочка</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label class="label-text">
+                        <span class="label-group">
+                            <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Дата осмотра
+                        </span>
+                    </label>
+                    <div class="relative-field">
+                        <input type="text" id="i_exam_date" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" maxlength="10">
+                        <button class="clear-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="i_is_preterm">
+                    <span>Недоношенность</span>
+                </label>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="i_is_mse">
+                    <span>Режим МСЭ</span>
+                </label>
+            </div>
+
+            <div id="v_preterm_fields" class="hidden input-wrapper" style="margin-top: 15px;">
+                <label class="label-text">Срок гестации (недель)</label>
+                <div class="relative-field">
+                    <input type="tel" id="i_gest_weeks" placeholder="22-37" maxlength="2" inputmode="numeric">
+                    <button class="clear-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; font-weight: 700; color: var(--primary); background: rgba(41, 128, 185, 0.1); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(41, 128, 185, 0.2);">
+                Возраст: <span id="o_age" style="font-size: 1.1em;">—</span>
+            </div>
+        </section>
+
+        <section class="card" id="v_anthro">
+            <h3>
+                <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+                Антропометрия
+            </h3>
+            <div class="grid-row">
+                <div class="input-wrapper">
+                    <label class="label-text">
+                        <span class="label-group">
+                            <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" /></svg>
+                            Рост (см)
+                        </span>
+                    </label>
+                    <div class="relative-field">
+                        <input type="text" id="i_height" inputmode="decimal" placeholder="Введите данные" class="auto-tab">
+                        <button class="clear-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label class="label-text">
+                        <span class="label-group">
+                            <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" /></svg>
+                            Вес (кг/г) 
+                        </span>
+                        <span id="o_weight_hint" class="weight-hint"></span>
+                    </label>
+                    <div class="relative-field">
+                        <input type="text" id="i_weight" inputmode="decimal" placeholder="Введите данные" class="auto-tab">
+                        <button class="clear-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label class="label-text">
+                        <span class="label-group">
+                            <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" /></svg>
+                            Окр. головы (см)
+                        </span>
+                    </label>
+                    <div class="relative-field">
+                        <input type="text" id="i_head" inputmode="decimal" placeholder="Введите данные" class="auto-tab">
+                        <button class="clear-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label class="label-text">
+                        <span class="label-group">
+                            <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" /></svg>
+                            Окр. груди (см)
+                        </span>
+                    </label>
+                    <div class="relative-field">
+                        <input type="text" id="i_chest" inputmode="decimal" placeholder="Введите данные" class="auto-tab">
+                        <button class="clear-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="v_mse_fields" class="hidden grid-row" style="margin-top: 15px;">
+                <div class="input-wrapper">
+                    <label class="label-text">Окр. талии (см)</label>
+                    <div class="relative-field">
+                        <input type="text" id="i_waist" inputmode="decimal" placeholder="Введите данные" class="auto-tab">
+                        <button class="clear-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label class="label-text">Окр. бедер (см)</label>
+                    <div class="relative-field">
+                        <input type="text" id="i_hips" inputmode="decimal" placeholder="Введите данные" class="auto-tab">
+                        <button class="clear-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="v_npr">
+            <h3>
+                <svg class="label-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>
+                НПР (К.Л. Печора)
+            </h3>
+            <div id="v_npr_list">
+                <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px;">
+                    Введите корректную дату рождения для загрузки критериев развития.
+                </p>
+            </div>
+        </section>
+
+        <!-- Output Section -->
+        <section class="result-section hidden" id="v_result_card">
+            <div id="o_result_data" class="result-data"></div>
+            <div id="o_result_conclusion" class="result-conclusion"></div>
+            <div style="padding: 15px; background: var(--bg-card); text-align: center;">
+                <button id="btn_copy" class="secondary" style="width: auto; padding: 12px 24px;">Скопировать текст</button>
+            </div>
+        </section>
+
+        <footer>
+            <div class="disclaimer-title">ДИСКЛЕЙМЕР (ОТКАЗ ОТ ОТВЕТСТВЕННОСТИ)</div>
+            <p>Данное веб-приложение предназначено исключительно для использования медицинскими специалистами в качестве вспомогательного инструмента. Результаты расчетов носят справочный характер и не могут служить единственным основанием для постановки диагноза. Врач несет полную ответственность за верификацию данных и принятие клинических решений.</p>
+            <p style="margin-top: 15px; font-weight: 500;">Источники:</p>
+            <ul style="list-style: none; padding: 0; margin: 5px 0;">
+                <li>WHO Child Growth Standards (2006/2007)</li>
+                <li>Мазурин А.В., Воронцов И.М. (Центильные таблицы)</li>
+                <li>Схема нервно-психического развития (К.Л. Печора)</li>
+            </ul>
+            <p style="margin-top: 20px; opacity: 0.6;">MedProtocol v2.0 | 2025</p>
+        </footer>
+    </div>
+
+    <!-- Sticky Footer -->
+    <div class="sticky-footer hidden" id="v_footer_actions">
+        <div class="footer-container">
+            <button id="btn_calc">Рассчитать</button>
+            <button id="btn_reset" class="secondary">Сброс</button>
+        </div>
+    </div>
+
+    <script>
+        /** MEDPROTOCOL v2.0 CORE */
+        const PIN_CODE = "1701";
+        
+        // --- 1. DATA (EXPANDED FOR SMOOTHER INTERPOLATION) ---
+        // Added 66, 78, 90 etc.
+        const DATA_WHO_WEIGHT = {
+            0: [3.3, 0.4, 3.2, 0.4], 1: [4.5, 0.5, 4.2, 0.5], 2: [5.6, 0.6, 5.1, 0.6], 
+            3: [6.4, 0.6, 5.8, 0.6], 4: [7.0, 0.7, 6.4, 0.7], 5: [7.5, 0.7, 6.9, 0.7],
+            6: [7.9, 0.8, 7.3, 0.8], 7: [8.3, 0.8, 7.6, 0.8], 8: [8.6, 0.9, 7.9, 0.9],
+            9: [8.9, 0.9, 8.2, 0.9], 10: [9.2, 1.0, 8.5, 1.0], 11: [9.4, 1.0, 8.7, 1.0],
+            12: [9.6, 1.0, 8.9, 1.0], 15: [10.3, 1.1, 9.6, 1.1], 18: [10.9, 1.2, 10.2, 1.2],
+            21: [11.5, 1.3, 10.9, 1.3], 24: [12.2, 1.5, 11.5, 1.4], 30: [13.3, 1.6, 12.7, 1.6],
+            36: [14.3, 1.9, 13.9, 1.8], 42: [15.3, 2.1, 15.0, 2.0], 48: [16.3, 2.3, 16.1, 2.2],
+            54: [17.3, 2.5, 17.2, 2.5], 60: [18.3, 2.7, 18.2, 2.7]
+        };
+
+        const DATA_WHO_HEIGHT = {
+            0: [49.9, 1.9, 49.1, 1.9], 1: [54.7, 2.0, 53.7, 2.0], 2: [58.4, 2.1, 57.1, 2.1],
+            3: [61.4, 2.2, 59.8, 2.2], 4: [63.9, 2.2, 62.1, 2.2], 5: [65.9, 2.3, 64.0, 2.3],
+            6: [67.6, 2.4, 65.7, 2.4], 7: [69.2, 2.4, 67.3, 2.4], 8: [70.6, 2.5, 68.7, 2.5],
+            9: [72.0, 2.5, 70.1, 2.5], 10: [73.3, 2.6, 71.5, 2.6], 11: [74.5, 2.6, 72.8, 2.6],
+            12: [75.7, 2.7, 74.0, 2.7], 15: [79.1, 2.8, 77.5, 2.8], 18: [82.3, 2.9, 80.7, 2.9],
+            21: [85.1, 3.0, 83.7, 3.0], 24: [87.8, 3.2, 86.4, 3.2], 30: [91.9, 3.5, 90.7, 3.4],
+            36: [96.1, 3.8, 95.1, 3.7], 42: [99.9, 4.0, 99.0, 3.9], 48: [103.3, 4.3, 102.7, 4.2],
+            54: [106.7, 4.5, 106.2, 4.5], 60: [110.0, 4.8, 109.4, 4.7],
+            // 5-19y interpolated points added
+            66: [113.0, 4.9, 112.5, 4.9], 72: [116.0, 5.0, 115.5, 5.0], 
+            78: [118.8, 5.1, 118.2, 5.1], 84: [121.7, 5.3, 121.0, 5.3],
+            90: [124.5, 5.5, 123.8, 5.5], 96: [127.3, 5.7, 126.6, 5.8], 
+            102: [130.0, 5.9, 129.4, 6.0], 108: [132.6, 6.1, 132.2, 6.3],
+            114: [135.2, 6.3, 135.1, 6.5], 120: [137.8, 6.5, 138.0, 6.8],
+            132: [143.0, 7.0, 144.0, 7.2], 144: [149.1, 7.6, 150.0, 7.5],
+            156: [155.0, 8.0, 155.0, 7.0], 168: [161.0, 8.2, 159.0, 6.7],
+            180: [166.0, 8.0, 161.0, 6.2], 192: [170.0, 7.6, 162.0, 6.0],
+            216: [174.0, 7.2, 163.0, 6.0], 228: [176.0, 7.0, 163.0, 6.0]
+        };
+
+        const DATA_WHO_BMI = {
+            60: [15.2, 1.2, 15.3, 1.3], 66: [15.2, 1.2, 15.3, 1.3],
+            72: [15.3, 1.3, 15.3, 1.4], 78: [15.4, 1.3, 15.4, 1.4],
+            84: [15.5, 1.4, 15.5, 1.5], 90: [15.6, 1.5, 15.6, 1.6],
+            96: [15.7, 1.6, 15.8, 1.7], 102: [15.8, 1.7, 16.0, 1.8],
+            108: [16.0, 1.8, 16.3, 1.9], 114: [16.3, 1.9, 16.6, 2.0],
+            120: [16.6, 2.0, 17.0, 2.2], 132: [17.5, 2.3, 17.9, 2.5],
+            144: [18.5, 2.6, 19.0, 2.8], 156: [19.5, 2.8, 20.0, 2.9],
+            168: [20.5, 3.0, 20.8, 2.9], 180: [21.3, 3.1, 21.3, 2.9],
+            192: [21.9, 3.2, 21.5, 2.9], 216: [22.4, 3.3, 21.7, 3.0],
+            228: [22.5, 3.3, 21.8, 3.0]
+        };
+
+        const DATA_CENTILES = {
+            head_m: { 
+                0: [33.0, 34.0, 35.0, 37.0, 38.0, 39.0], 1: [35.5, 36.5, 37.5, 39.5, 40.5, 41.5],
+                2: [37.5, 38.5, 39.5, 41.5, 42.5, 43.5], 3: [39.0, 40.0, 41.0, 43.0, 44.0, 45.0],
+                6: [41.0, 42.0, 43.0, 45.0, 46.0, 47.0], 9: [42.5, 43.5, 44.5, 46.5, 47.5, 48.5],
+                12: [44.0, 45.0, 46.0, 48.0, 49.0, 50.0], 24: [46.0, 47.0, 48.0, 50.0, 51.0, 52.0],
+                36: [47.0, 48.0, 49.0, 51.0, 52.0, 53.0], 60: [48.0, 49.0, 50.0, 52.0, 53.0, 54.0]
+            },
+            head_f: { 
+                0: [32.0, 33.0, 34.0, 36.0, 37.0, 38.0], 1: [34.5, 35.5, 36.5, 38.5, 39.5, 40.5],
+                2: [36.5, 37.5, 38.5, 40.5, 41.5, 42.5], 3: [38.0, 39.0, 40.0, 42.0, 43.0, 44.0],
+                6: [40.0, 41.0, 42.0, 44.0, 45.0, 46.0], 9: [41.5, 42.5, 43.5, 45.5, 46.5, 47.5],
+                12: [43.0, 44.0, 45.0, 47.0, 48.0, 49.0], 24: [45.0, 46.0, 47.0, 49.0, 50.0, 51.0],
+                36: [46.0, 47.0, 48.0, 50.0, 51.0, 52.0], 60: [47.0, 48.0, 49.0, 51.0, 52.0, 53.0]
+            },
+            chest_m: { 
+                0: [31.0, 32.0, 33.0, 35.0, 36.0, 37.0], 3: [37.0, 38.0, 39.0, 42.0, 43.0, 44.0],
+                6: [40.0, 41.0, 42.0, 45.0, 46.0, 47.0], 12: [45.0, 46.0, 47.0, 50.0, 51.0, 52.0],
+                36: [49.0, 50.0, 52.0, 55.0, 57.0, 58.0], 60: [52.0, 53.0, 55.0, 59.0, 61.0, 62.0]
+            },
+            chest_f: { 
+                0: [31.0, 32.0, 33.0, 35.0, 36.0, 37.0], 3: [36.5, 37.5, 38.5, 41.5, 42.5, 43.5],
+                6: [39.0, 40.0, 41.0, 44.0, 45.0, 46.0], 12: [44.0, 45.0, 46.0, 49.0, 50.0, 51.0],
+                36: [48.0, 49.0, 51.0, 54.0, 56.0, 57.0], 60: [51.0, 52.0, 54.0, 57.0, 59.0, 60.0]
+            }
+        };
+
+        const DATA_NPR = {
+            1: ["Удерживает в поле зрения движущийся предмет (ступенчатое слежение)", "Улыбается в ответ на разговор (первая улыбка)", "Издает отдельные гортанные звуки", "Лежа на животе, пытается поднимать или удерживать голову"],
+            3: ["Сосредотачивает взгляд на неподвижном предмете", "Комплекс оживления (улыбка, движения, звуки) на общение", "Гулит, появляются певучие гласные", "Лежа на животе, хорошо удерживает голову и верхнюю часть туловища", "Случайно наталкивается руками на игрушки, подвешенные низко"],
+            6: ["Различает строгую и ласковую интонацию", "Долго и певуче гулит (лепет)", "Ест густую пищу с ложки", "Поворачивается с живота на спину", "Подтягивается, держась за пальцы взрослого, пытается сесть", "Берет игрушку из рук взрослого всей ладонью", "Перекладывает игрушку из одной руки в другую"],
+            9: ["На вопрос «где?» находит взглядом знакомый предмет", "Знает свое имя, оборачивается на зов", "Повторяет слоги за взрослым (ба-ба, ма-ма)", "Садится из положения лежа", "Встает у опоры, переступает", "Пьет из чашки, которую держит взрослый", "Есть корочку хлеба, держа ее в руке"],
+            12: ["Узнает по фотографии знакомого взрослого", "Говорит 5-10 облегченных слов", "Выполняет разученные действия («ладушки», «пока-пока»)", "Понимает слово «нельзя»", "Ходит самостоятельно", "Пьет из чашки самостоятельно", "Берет мелкие предметы двумя пальцами (пинцетный захват)"],
+            18: ["Показывает 3-4 части тела", "Понимает несложный рассказ по картинке", "Пользуется словами для обозначения желаний", "Ест ложкой жидкую пищу (неаккуратно)", "Ориентируется в 2-х формах (шарик, кубик) и величинах", "Перешагивает через препятствия приставным шагом"],
+            24: ["Показывает и называет 3-4 цвета", "Говорит предложениями из 2-3 слов", "Начинает задавать вопросы «что это?»", "Просится на горшок (частично контролирует)", "Ест аккуратно, держит ложку в кулаке", "Моет руки и лицо (с помощью)"]
+        };
+
+        // --- 2. STATE ---
+        const state = {
+            theme: localStorage.getItem('medprotocol_theme') || 'light',
+            nprResults: JSON.parse(localStorage.getItem('medprotocol_npr')) || {},
+            dob: '',
+            examDate: '',
+            gender: 'm',
+            isPreterm: false,
+            gestWeeks: 37,
+            isMse: false
+        };
+
+        // --- 3. DOM HELPERS ---
+        const getEl = (id) => document.getElementById(id);
+        const els = {
+            login: getEl('v_login'),
+            pinInput: getEl('i_pin_input'),
+            pinBtn: getEl('btn_login_enter'),
+            loginError: getEl('o_login_error'),
+            app: getEl('v_app'),
+            dob: getEl('i_dob'),
+            examDate: getEl('i_exam_date'),
+            gender: getEl('i_gender'),
+            preterm: getEl('i_is_preterm'),
+            mse: getEl('i_is_mse'),
+            gestWeeks: getEl('i_gest_weeks'),
+            vPreterm: getEl('v_preterm_fields'),
+            vMse: getEl('v_mse_fields'),
+            vNprList: getEl('v_npr_list'),
+            vResult: getEl('v_result_card'),
+            oData: getEl('o_result_data'),
+            oConclusion: getEl('o_result_conclusion'),
+            vFooter: getEl('v_footer_actions'),
+            oAge: getEl('o_age'),
+            themeBtn: getEl('btn_theme'),
+            wHint: getEl('o_weight_hint'),
+            toast: getEl('v_toast'), // TOAST ELEMENT
+            inputs: {
+                w: getEl('i_weight'),
+                h: getEl('i_height'),
+                head: getEl('i_head'),
+                chest: getEl('i_chest'),
+                waist: getEl('i_waist'),
+                hips: getEl('i_hips')
+            }
+        };
+
+        // --- 4. FUNCTIONS ---
+
+        function showToast(message) {
+            const t = els.toast;
+            t.innerText = message;
+            t.classList.add('show');
+            setTimeout(() => {
+                t.classList.remove('show');
+            }, 3000);
+        }
+
+        function getVal(el) {
+            if (!el) return null;
+            let val = el.value.replace(',', '.').replace(/[^\d.]/g, '');
+            return val === '' ? null : parseFloat(val);
+        }
+
+        function getNormalizedWeight(el) {
+            let val = getVal(el);
+            if (!val) return null;
+            if (val > 250) return val / 1000;
+            return val;
+        }
+
+        // --- AUTH ---
+        function initAuth() {
+            const checkPin = () => {
+                if(els.pinInput.value === PIN_CODE) {
+                    els.login.classList.add('hidden');
+                    els.app.classList.remove('hidden');
+                    els.vFooter.classList.remove('hidden'); // Show footer
+                    loadState();
+                } else {
+                    els.loginError.innerText = "Неверный PIN-код";
+                    els.pinInput.value = "";
+                    setTimeout(() => els.loginError.innerText = "", 2000);
+                }
+            };
+
+            els.pinBtn.addEventListener('click', checkPin);
+            els.pinInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkPin();
+            });
+            setTimeout(() => els.pinInput.focus(), 500);
+        }
+
+        // --- DATES & VALIDATION ---
+        function parseDate(str) {
+            if (!/^\d{2}\.\d{2}\.\d{4}$/.test(str)) return null;
+            const [d, m, y] = str.split('.').map(Number);
+            if (m < 1 || m > 12) return null;
+            if (d < 1 || d > 31) return null;
+            const date = new Date(y, m - 1, d);
+            return (date.getFullYear() === y && date.getMonth() === m - 1) ? date : null;
+        }
+
+        function validateDatesInput(dobStr, examStr) {
+            let valid = true;
+            const dob = parseDate(dobStr);
+            if (!dob && dobStr.length > 0) {
+                els.dob.classList.add('input-error');
+                valid = false;
+            } else {
+                els.dob.classList.remove('input-error');
+            }
+            const exam = parseDate(examStr);
+            if (!exam && examStr.length > 0) {
+                els.examDate.classList.add('input-error');
+                valid = false;
+            } else {
+                els.examDate.classList.remove('input-error');
+            }
+            if (dob && exam && exam < dob) {
+                els.dob.classList.add('input-error');
+                els.examDate.classList.add('input-error');
+                valid = false;
+            }
+            return valid && dob && exam;
+        }
+
+        function getAge(dob, examDate, isPreterm, gestWeeks) {
+            let diffMs = examDate - dob;
+            let years = examDate.getFullYear() - dob.getFullYear();
+            let months = examDate.getMonth() - dob.getMonth();
+            let days = examDate.getDate() - dob.getDate();
+            if (days < 0) {
+                months--;
+                days += new Date(examDate.getFullYear(), examDate.getMonth(), 0).getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            const totalMonths = years * 12 + months;
+            const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            let result = { years, months, days, totalMonths, totalDays, isCorrected: false };
+            if (isPreterm && gestWeeks && totalMonths < 24) {
+                const daysMissing = (40 - gestWeeks) * 7;
+                let correctedTotalDays = totalDays - daysMissing;
+                result.totalMonths = Math.floor(correctedTotalDays / 30.4375);
+                result.years = Math.floor(result.totalMonths / 12);
+                result.months = Math.floor(result.totalMonths % 12);
+                result.days = Math.max(0, Math.floor(correctedTotalDays % 30.4375));
+                result.isCorrected = true;
+            }
+            return result;
+        }
+
+        // --- NPR RENDER ---
+        function renderNPR(ageMonths) {
+            els.vNprList.innerHTML = '';
+            if (ageMonths > 24) {
+                els.vNprList.innerHTML = '<div style="padding:15px; background:rgba(0,0,0,0.05); border-radius:8px; text-align:center;">Оценка по схеме Печора не проводится (возраст > 2 лет).</div>';
+                return;
+            }
+
+            const milestones = [1, 3, 6, 9, 12, 18, 24];
+            const passedMilestones = milestones.filter(m => m <= ageMonths);
+            let currentMilestone = 1; 
+            
+            if (passedMilestones.length > 0) {
+                currentMilestone = Math.max(...passedMilestones);
+            } else {
+                currentMilestone = 1;
+            }
+
+            const activeMilestones = milestones.filter(m => m <= currentMilestone).sort((a,b) => b-a);
+            
+            if (activeMilestones.length === 0 && ageMonths < 1) {
+                 els.vNprList.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted)">Возраст менее 1 мес. Оценка по эпикризным срокам начинается с 1 мес.</div>';
+                 return;
+            }
+
+            activeMilestones.forEach(m => {
+                const details = document.createElement('details');
+                if (m === currentMilestone) details.open = true;
+
+                const summary = document.createElement('summary');
+                summary.innerText = `${m} мес.`;
+                details.appendChild(summary);
+
+                const content = document.createElement('div');
+                content.className = 'details-content';
+
+                const items = DATA_NPR[m];
+                items.forEach((text, idx) => {
+                    const id = `npr_${m}_${idx}`;
+                    const wrap = document.createElement('label');
+                    wrap.className = 'checkbox-wrapper npr-item';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.id = id;
+                    if (state.nprResults.hasOwnProperty(id)) {
+                        cb.checked = state.nprResults[id];
+                    } else {
+                        cb.checked = true;
+                    }
+                    const span = document.createElement('span');
+                    span.innerText = text;
+                    wrap.appendChild(cb);
+                    wrap.appendChild(span);
+                    content.appendChild(wrap);
+                });
+                details.appendChild(content);
+                els.vNprList.appendChild(details);
+            });
+        }
+
+        // --- MATH ENGINES ---
+        function interpolate(x, x1, y1, x2, y2) {
+            if (x1 === x2) return y1;
+            return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
+        }
+
+        function getZScore(val, ageMonths, gender, tableType) {
+            if (!val) return null;
+            const table = tableType === 'w' ? DATA_WHO_WEIGHT : 
+                          tableType === 'h' ? DATA_WHO_HEIGHT : DATA_WHO_BMI;
+            
+            const months = Object.keys(table).map(Number).sort((a,b)=>a-b);
+            if (ageMonths < months[0]) ageMonths = months[0];
+            if (ageMonths > months[months.length-1]) ageMonths = months[months.length-1];
+
+            let lower = months[0], upper = months[months.length-1];
+            for (let i = 0; i < months.length - 1; i++) {
+                if (ageMonths >= months[i] && ageMonths <= months[i+1]) {
+                    lower = months[i];
+                    upper = months[i+1];
+                    break;
+                }
+            }
+
+            const idxM = gender === 'm' ? 0 : 2;
+            const idxS = gender === 'm' ? 1 : 3;
+
+            const m1 = table[lower][idxM], s1 = table[lower][idxS];
+            const m2 = table[upper][idxM], s2 = table[upper][idxS];
+
+            const mCur = interpolate(ageMonths, lower, m1, upper, m2);
+            const sCur = interpolate(ageMonths, lower, s1, upper, s2);
+
+            return (val - mCur) / sCur;
+        }
+
+        function getCentile(val, ageMonths, gender, type) {
+            if (!val) return null;
+            const key = type + (gender === 'm' ? '_m' : '_f');
+            const data = DATA_CENTILES[key];
+            if (!data) return null;
+
+            const ages = Object.keys(data).map(Number);
+            const nearestAge = ages.reduce((prev, curr) => 
+                Math.abs(curr - ageMonths) < Math.abs(prev - ageMonths) ? curr : prev
+            );
+
+            const grid = data[nearestAge]; 
+            
+            if (val < grid[0]) return "Резко низкое"; 
+            if (val < grid[1]) return "Низкое"; 
+            if (val < grid[2]) return "Ниже среднего"; 
+            if (val <= grid[3]) return "Среднее"; 
+            if (val <= grid[4]) return "Выше среднего"; 
+            if (val <= grid[5]) return "Высокое"; 
+            return "Резко высокое"; 
+        }
+
+        function zToText(z) {
+            if (z === null) return "";
+            if (z < -3) return "Резко низкое";
+            if (z < -2) return "Низкое";
+            if (z < -1) return "Ниже среднего";
+            if (z <= 1) return "Среднее";
+            if (z <= 2) return "Выше среднего";
+            if (z <= 3) return "Высокое";
+            return "Резко высокое";
+        }
+
+        // --- MAIN LOGIC ---
+        function runCalculations() {
+            if (!validateDatesInput(els.dob.value, els.examDate.value)) {
+                alert("Ошибка в датах. Проверьте формат и логику.");
+                return;
+            }
+
+            const dob = parseDate(els.dob.value);
+            const exam = parseDate(els.examDate.value);
+            const isPreterm = els.preterm.checked;
+            const gest = parseInt(els.gestWeeks.value) || 37;
+            const age = getAge(dob, exam, isPreterm, gest);
+            const mT = age.totalMonths;
+            const gender = els.gender.value;
+
+            els.oAge.innerText = `${age.years} г. ${age.months} мес. ${age.days} дн.` + (age.isCorrected ? " (Скорр.)" : "");
+
+            const w = getNormalizedWeight(els.inputs.w);
+            const h = getVal(els.inputs.h);
+            const head = getVal(els.inputs.head);
+            const chest = getVal(els.inputs.chest);
+
+            let lines = [];
+            let physStatus = "";
+            let harmony = "";
+            let physConclusion = "";
+            let maxSeverity = 0; // 0=Green, 1=Yellow, 2=Red
+
+            if (mT <= 60) {
+                const zW = getZScore(w, mT, gender, 'w');
+                const zH = getZScore(h, mT, gender, 'h');
+
+                if (zH !== null) {
+                    lines.push(`Рост: ${h} см (${zToText(zH)})`);
+                    if(Math.abs(zH) > 2) maxSeverity = Math.max(maxSeverity, 2);
+                    else if(Math.abs(zH) > 1) maxSeverity = Math.max(maxSeverity, 1);
+                }
+                if (zW !== null) {
+                    lines.push(`Вес: ${w} кг (${zToText(zW)})`);
+                    if(Math.abs(zW) > 2) maxSeverity = Math.max(maxSeverity, 2);
+                    else if(Math.abs(zW) > 1) maxSeverity = Math.max(maxSeverity, 1);
+                }
+
+                if (zH !== null && zW !== null) {
+                    const txtH = zToText(zH);
+                    const txtW = zToText(zW);
+                    
+                    if (txtH === txtW) {
+                         physConclusion = `Физическое развитие ${txtH.toLowerCase()}`;
+                    } else {
+                         physConclusion = `Физическое развитие ${txtH.toLowerCase()} по росту, ${txtW.toLowerCase()} по весу`;
+                    }
+
+                    const diff = Math.abs(zH - zW);
+                    if (diff <= 1) harmony = "Гармоничное";
+                    else if (diff <= 2) { harmony = "Дисгармоничное"; maxSeverity = Math.max(maxSeverity, 1); }
+                    else { harmony = "Резко дисгармоничное"; maxSeverity = Math.max(maxSeverity, 2); }
+                }
+            } else {
+                const zH = getZScore(h, mT, gender, 'h');
+                const bmi = (w && h) ? w / ((h/100)**2) : null;
+                const zBMI = bmi ? getZScore(bmi, mT, gender, 'bmi') : null;
+
+                if (zH !== null) {
+                    lines.push(`Рост: ${h} см (${zToText(zH)})`);
+                    if(Math.abs(zH) > 2) maxSeverity = Math.max(maxSeverity, 2);
+                    else if(Math.abs(zH) > 1) maxSeverity = Math.max(maxSeverity, 1);
+                }
+                if (bmi) {
+                    lines.push(`ИМТ: ${bmi.toFixed(1)} (${zToText(zBMI)})`);
+                    if(zBMI && Math.abs(zBMI) > 2) maxSeverity = Math.max(maxSeverity, 2);
+                    else if(zBMI && Math.abs(zBMI) > 1) maxSeverity = Math.max(maxSeverity, 1);
+                }
+
+                if (zH !== null && zBMI !== null) {
+                    const txtH = zToText(zH);
+                    const txtBMI = zToText(zBMI);
+                    
+                    if (txtH === txtBMI) {
+                         physConclusion = `Физическое развитие ${txtH.toLowerCase()}`;
+                    } else {
+                         physConclusion = `Физическое развитие ${txtH.toLowerCase()} по росту, ${txtBMI.toLowerCase()} по ИМТ`;
+                    }
+                    
+                    const absZ = Math.abs(zBMI);
+                    if (absZ <= 1) harmony = "Гармоничное";
+                    else if (absZ <= 2) { harmony = "Дисгармоничное"; maxSeverity = Math.max(maxSeverity, 1); }
+                    else { harmony = "Резко дисгармоничное"; maxSeverity = Math.max(maxSeverity, 2); }
+                } else if (zH !== null) {
+                     physConclusion = `Физическое развитие ${zToText(zH).toLowerCase()} по росту`;
+                }
+            }
+
+            const cHead = getCentile(head, mT, gender, 'head');
+            const cChest = getCentile(chest, mT, gender, 'chest');
+            if (cHead) lines.push(`Голова: ${head} см (${cHead})`);
+            if (cChest) lines.push(`Грудь: ${chest} см (${cChest})`);
+
+            if (els.mse.checked) {
+                const waist = getVal(els.inputs.waist);
+                const hips = getVal(els.inputs.hips);
+                if (waist) lines.push(`Талия: ${waist} см`);
+                if (hips) lines.push(`Бедра: ${hips} см`);
+            }
+
+            let nprText = "";
+            if (mT <= 24) {
+                nprText = "Нервно-психическое развитие соответствует возрасту";
+                const checkboxes = els.vNprList.querySelectorAll('input[type="checkbox"]');
+                if (checkboxes.length > 0) {
+                    let fails = [];
+                    checkboxes.forEach(cb => {
+                        if(!cb.checked) fails.push(cb.nextElementSibling.innerText.toLowerCase());
+                        state.nprResults[cb.id] = cb.checked;
+                    });
+                    if (fails.length > 0) {
+                        nprText = `НПР: отставание (не сформировано: ${fails.join('; ')}).`;
+                        maxSeverity = Math.max(maxSeverity, 1);
+                    }
+                }
+            }
+            
+            localStorage.setItem('medprotocol_npr', JSON.stringify(state.nprResults));
+
+            // Visual Update
+            els.vResult.classList.remove('hidden');
+            
+            // 1. Data Block (White)
+            els.oData.innerHTML = `<strong>Результаты:</strong><br>${lines.join('<br>')}`;
+            
+            // 2. Conclusion Block (Colored)
+            // Reset classes
+            els.oConclusion.classList.remove('status-green', 'status-yellow', 'status-red');
+            if(maxSeverity === 0) els.oConclusion.classList.add('status-green');
+            else if(maxSeverity === 1) els.oConclusion.classList.add('status-yellow');
+            else els.oConclusion.classList.add('status-red');
+
+            let finalConclusion = `<strong>Заключение:</strong> ${physConclusion}`;
+            if (harmony) finalConclusion += `, ${harmony.toLowerCase()}.`;
+            else finalConclusion += `.`;
+            
+            if (nprText) {
+                finalConclusion += `<br>${nprText}`;
+            }
+            
+            els.oConclusion.innerHTML = finalConclusion;
+            
+            // --- CLEAN TEXT GENERATION FOR CLIPBOARD ---
+            let cleanText = lines.join('\n');
+            cleanText += '\n'; // Single break
+            cleanText += `${physConclusion}`;
+            if (harmony) cleanText += `, ${harmony.toLowerCase()}.`;
+            else cleanText += `.`;
+            
+            if (nprText) {
+                cleanText += `\n${nprText}`;
+            }
+            
+            els.vResult.dataset.clipboard = cleanText;
+            els.vResult.scrollIntoView({behavior:"smooth"});
+        }
+
+        function loadState() {
+            const today = new Date();
+            const d = String(today.getDate()).padStart(2,'0');
+            const m = String(today.getMonth()+1).padStart(2,'0');
+            if(!els.examDate.value) els.examDate.value = `${d}.${m}.${today.getFullYear()}`;
+        }
+
+        function resetForm() {
+            const inputs = els.app.querySelectorAll('input');
+            inputs.forEach(i => {
+                if(i.type === 'checkbox') i.checked = false;
+                else i.value = '';
+            });
+            els.app.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+            
+            els.vPreterm.classList.add('hidden');
+            els.vMse.classList.add('hidden');
+            els.vResult.classList.add('hidden');
+            
+            els.oAge.innerText = "—";
+            els.oData.innerHTML = "";
+            els.oConclusion.innerHTML = "";
+            els.wHint.innerText = "";
+            
+            els.vNprList.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px;">Введите корректную дату рождения для загрузки критериев развития.</p>';
+            
+            state.nprResults = {};
+            localStorage.removeItem('medprotocol_npr');
+            loadState();
+        }
+
+        function initAutoTab() {
+            const inputs = document.querySelectorAll('.auto-tab');
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const nextInput = inputs[index + 1];
+                        if (nextInput && !nextInput.closest('.hidden')) {
+                            nextInput.focus();
+                        } else {
+                            input.blur();
+                        }
+                    }
+                });
+            });
+        }
+
+        function initClearButtons() {
+            const wrappers = document.querySelectorAll('.relative-field, .input-wrapper'); // Broad selector
+            wrappers.forEach(wrap => {
+                const input = wrap.querySelector('input');
+                const btn = wrap.querySelector('.clear-btn');
+                if(!input || !btn) return;
+
+                btn.addEventListener('click', () => {
+                    input.value = '';
+                    input.focus();
+                    input.dispatchEvent(new Event('input'));
+                });
+            });
+        }
+
+        // --- LISTENERS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuth();
+            initAutoTab();
+            initClearButtons();
+            
+            els.inputs.w.addEventListener('input', (e) => {
+                const val = getVal(e.target);
+                if (!val) {
+                    els.wHint.innerText = '';
+                } else if (val > 250) {
+                    els.wHint.innerText = `(${val/1000} кг)`;
+                } else {
+                    els.wHint.innerText = `(${val} кг)`;
+                }
+            });
+
+            [els.dob, els.examDate].forEach(el => {
+                el.addEventListener('input', e => {
+                    let v = e.target.value.replace(/\D/g,'');
+                    if(v.length>2) v = v.slice(0,2)+'.'+v.slice(2);
+                    if(v.length>5) v = v.slice(0,5)+'.'+v.slice(5);
+                    e.target.value = v.slice(0,10);
+                    
+                    validateDatesInput(els.dob.value, els.examDate.value);
+                    
+                    if(v.length === 10) {
+                        const dob = parseDate(els.dob.value);
+                        const ex = parseDate(els.examDate.value);
+                        if(dob && ex && ex >= dob) {
+                            const age = getAge(dob, ex, els.preterm.checked, els.gestWeeks.value);
+                            renderNPR(age.totalMonths);
+                            els.oAge.innerText = `${age.years} г. ${age.months} мес. ${age.days} дн.` + (age.isCorrected ? " (Скорр.)" : "");
+                        }
+                    }
+                });
+                el.addEventListener('blur', () => validateDatesInput(els.dob.value, els.examDate.value));
+            });
+
+            els.themeBtn.addEventListener('click', () => {
+                state.theme = state.theme === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', state.theme);
+                localStorage.setItem('medprotocol_theme', state.theme);
+            });
+            document.documentElement.setAttribute('data-theme', state.theme);
+
+            els.preterm.addEventListener('change', e => els.vPreterm.classList.toggle('hidden', !e.target.checked));
+            els.mse.addEventListener('change', e => els.vMse.classList.toggle('hidden', !e.target.checked));
+
+            getEl('btn_calc').addEventListener('click', runCalculations);
+            getEl('btn_reset').addEventListener('click', resetForm);
+            
+            getEl('btn_copy').addEventListener('click', () => {
+                const text = els.vResult.dataset.clipboard || els.oData.innerText;
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    if(successful) showToast("Текст скопирован в буфер обмена");
+                    else throw new Error("Copy failed");
+                } catch (err) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => showToast("Текст скопирован в буфер обмена"))
+                        .catch(() => alert("Браузер заблокировал авто-копирование."));
+                }
+                document.body.removeChild(textArea);
+            });
+        });
+    </script>
+</body>
+</html>
